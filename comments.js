@@ -1,69 +1,61 @@
 //create web server
-const express = require('express');
-const app = express();
-//create a port
-const port = 3000;
-//create a path
-const path = require('path');
-//create a body parser
-const bodyParser = require('body-parser');
-//create a fs
-const fs = require('fs');
-//create a json file
-let comments = require('./comments.json');
-//create a json file
-let users = require('./users.json');
-//create a json file
-let posts = require('./posts.json');
-//create a json file
-let likes = require('./likes.json');
-//create a json file
-let commentsLikes = require('./commentsLikes.json');
-//create a json file
-let commentsDislikes = require('./commentsDislikes.json');
-//create a json file
-let postsLikes = require('./postsLikes.json');
-//create a json file
-let postsDislikes = require('./postsDislikes.json');
-//create a json file
-let usersLikes = require('./usersLikes.json');
-//create a json file
-let usersDislikes = require('./usersDislikes.json');
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var Comment = require('./models/comment');
+//connect to mongodb
+mongoose.connect('mongodb://localhost/comment');
 
-//create a static file
-app.use(express.static('public'));
-//create a body parser
-app.use(bodyParser.urlencoded({ extended: false }));
-//create a body parser
+//configure app
 app.use(bodyParser.json());
-//create a get
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+app.use(bodyParser.urlencoded({extended: true}));
+
+//set up routes
+app.get('/', function(req, res){
+  res.send('Please use /api/comments');
 });
-//create a get
-app.get('/comments', (req, res) => {
-    res.sendFile(path.join(__dirname, 'comments.html'));
+
+app.get('/api/comments', function(req, res){
+  Comment.getComments(function(err, comments){
+    if(err){
+      throw err;
+    }
+    res.json(comments);
+  });
 });
-//create a get
-app.get('/users', (req, res) => {
-    res.sendFile(path.join(__dirname, 'users.html'));
+
+app.post('/api/comments', function(req, res){
+  var comment = req.body;
+  Comment.addComment(comment, function(err, comment){
+    if(err){
+      throw err;
+    }
+    res.json(comment);
+  });
 });
-//create a get
-app.get('/posts', (req, res) => {
-    res.sendFile(path.join(__dirname, 'posts.html'));
+
+app.put('/api/comments/:_id', function(req, res){
+  var id = req.params._id;
+  var comment = req.body;
+  Comment.updateComment(id, comment, {}, function(err, comment){
+    if(err){
+      throw err;
+    }
+    res.json(comment);
+  });
 });
-//create a get
-app.get('/likes', (req, res) => {
-    res.sendFile(path.join(__dirname, 'likes.html'));
+
+app.delete('/api/comments/:_id', function(req, res){
+  var id = req.params._id;
+  Comment.removeComment(id, function(err, comment){
+    if(err){
+      throw err;
+    }
+    res.json(comment);
+  });
 });
-//create a get
-app.get('/commentsLikes', (req, res) => {
-    res.sendFile(path.join(__dirname, 'commentsLikes.html'));
-});
-//create a get
-app.get('/commentsDislikes', (req, res) => {
-    res.sendFile(path.join(__dirname, 'commentsDislikes.html'));
-});
-//create a get
-app.get('/postsLikes', (req, res) => {
-    res.sendFile(path.join(__dirname,
+
+//start server
+app.listen(3000);
+console.log('Running on port 3000...');
